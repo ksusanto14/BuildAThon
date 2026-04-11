@@ -1,0 +1,229 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ─── User & Auth ───
+
+model User {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  password  String?
+  role      String   @default("ATHLETE")
+  sportType String?
+  timezone  String   @default("UTC")
+  avatarUrl String?
+  settings  String   @default("{}")
+  onboardingComplete Boolean @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  healthSessions      HealthSession[]
+  contextLogs         ContextLog[]
+  wearableConnections WearableConnection[]
+  performanceFormulas PerformanceFormula[]
+  trainingPlans       TrainingPlan[]
+  userGoals           UserGoal[]
+  journalEntries      JournalEntry[]
+  dataImports         DataImport[]
+  notifications       Notification[]
+  mealPlans           MealPlan[]
+}
+
+// ─── Health Data (Three Pillars) ───
+
+model HealthSession {
+  id     String   @id @default(cuid())
+  userId String
+  date   DateTime
+
+  // Sleep Pillar
+  sleepHours       Float?
+  sleepEfficiency  Float?
+  sleepConsistency Float?
+  sleepStress      Float?
+  deepSleepHrs     Float?
+  remSleepHrs      Float?
+  lightSleepHrs    Float?
+  awakeHrs         Float?
+
+  // Recovery Pillar
+  hrv             Float?
+  restingHr       Float?
+  respiratoryRate Float?
+  recoveryScore   Float?
+
+  // Strain Pillar
+  borgRpe     Float?
+  hrZone1Mins Float?
+  hrZone2Mins Float?
+  hrZone3Mins Float?
+  hrZone4Mins Float?
+  hrZone5Mins Float?
+  activityMins Float?
+  steps       Int?
+
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, date])
+  @@index([userId, date])
+}
+
+// ─── Context Logs ───
+
+model ContextLog {
+  id          String   @id @default(cuid())
+  userId      String
+  date        DateTime
+  mealType    String?
+  musicGenre  String?
+  moodScore   Int?
+  stressLevel Int?
+  timeOfDay   String?
+  performanceRating Int?
+  createdAt   DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, date])
+}
+
+// ─── Performance Formula ───
+
+model PerformanceFormula {
+  id               String   @id @default(cuid())
+  userId           String
+  formulaText      String
+  conditions       String   @default("[]")
+  confidenceScore  Float
+  sessionsAnalyzed Int
+  version          Int
+  createdAt        DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+// ─── Wearable Connections ───
+
+model WearableConnection {
+  id             String    @id @default(cuid())
+  userId         String
+  provider       String
+  accessToken    String
+  refreshToken   String?
+  tokenExpiresAt DateTime?
+  lastSyncAt     DateTime?
+  syncStatus     String    @default("connected")
+  createdAt      DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, provider])
+}
+
+// ─── Training Plans ───
+
+model TrainingPlan {
+  id            String   @id @default(cuid())
+  userId        String
+  weekStartDate DateTime
+  sessions      String   @default("[]")
+  adjustments   String?
+  createdAt     DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, weekStartDate])
+}
+
+// ─── User Goals ───
+
+model UserGoal {
+  id          String    @id @default(cuid())
+  userId      String
+  metric      String
+  targetValue Float
+  deadline    DateTime?
+  progress    Float     @default(0)
+  createdAt   DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+// ─── Journal Entries ───
+
+model JournalEntry {
+  id        String   @id @default(cuid())
+  userId    String
+  date      DateTime
+  content   String
+  mood      String?
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, date])
+}
+
+// ─── Data Imports ───
+
+model DataImport {
+  id           String   @id @default(cuid())
+  userId       String
+  filename     String
+  rowCount     Int
+  importStatus String   @default("PENDING")
+  errorReport  String?
+  createdAt    DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+// ─── Notifications ───
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  type      String
+  title     String
+  body      String?
+  status    String   @default("unread")
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, status])
+}
+
+// ─── Meal Plans ───
+
+model MealPlan {
+  id             String   @id @default(cuid())
+  userId         String
+  date           DateTime
+  trainingDay    Boolean  @default(true)
+  targetCalories Int
+  targetProtein  Int      // grams
+  targetCarbs    Int      // grams
+  targetFat      Int      // grams
+  meals          String   @default("[]") // JSON: [{name, time, foods, calories, protein, carbs, fat}]
+  notes          String?
+  createdAt      DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, date])
+  @@index([userId, date])
+}
