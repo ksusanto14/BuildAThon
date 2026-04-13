@@ -213,7 +213,13 @@ export default function SettingsPage() {
           <Palette className="w-4 h-4 text-muted-foreground" />
           <h2 className="font-semibold text-sm">Data Management</h2>
         </div>
-        <div className="flex gap-3">
+        <div className="flex flex-wrap gap-3">
+          <a
+            href="/import"
+            className="px-4 py-2 border border-border rounded-lg text-sm hover:bg-accent transition-colors"
+          >
+            Import CSV
+          </a>
           <a
             href="/api/export/user-data"
             download
