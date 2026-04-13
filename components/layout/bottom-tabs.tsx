@@ -2,11 +2,12 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Activity, Music, Settings } from "lucide-react";
+import { Activity, Music, UtensilsCrossed, Settings } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const tabs = [
   { href: "/dashboard", label: "Today", icon: Activity },
+  { href: "/meal-plan", label: "Nutrition", icon: UtensilsCrossed },
   { href: "/music", label: "Music", icon: Music },
   { href: "/settings", label: "Settings", icon: Settings },
 ];

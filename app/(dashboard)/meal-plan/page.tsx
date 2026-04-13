@@ -117,7 +117,7 @@ function MacroRing({
             fill="none"
             stroke="currentColor"
             strokeWidth="6"
-            className="text-zinc-800"
+            className="text-muted/20"
           />
           <circle
             cx="40"
@@ -133,13 +133,13 @@ function MacroRing({
           />
         </svg>
         <div className="absolute inset-0 flex items-center justify-center">
-          <span className="text-xs font-bold text-zinc-200">
+          <span className="text-xs font-bold text-foreground">
             {Math.round(pct)}%
           </span>
         </div>
       </div>
-      <span className="text-xs text-zinc-400">{label}</span>
-      <span className="text-xs text-zinc-500">
+      <span className="text-xs text-muted-foreground">{label}</span>
+      <span className="text-xs text-muted-foreground">
         {value}/{max}
         {unit}
       </span>
@@ -156,20 +156,20 @@ function LoadingSkeleton() {
     <div className="space-y-6 animate-pulse">
       {/* Header skeleton */}
       <div className="flex items-center justify-between">
-        <div className="h-8 w-48 bg-zinc-800 rounded" />
-        <div className="h-8 w-32 bg-zinc-800 rounded" />
+        <div className="h-8 w-48 bg-muted rounded" />
+        <div className="h-8 w-32 bg-muted rounded" />
       </div>
       {/* Summary bar */}
-      <div className="h-24 bg-zinc-800/50 rounded-xl" />
+      <div className="h-24 bg-muted/50 rounded-xl" />
       {/* Macro rings */}
       <div className="flex justify-center gap-8">
-        <div className="h-24 w-20 bg-zinc-800/50 rounded-lg" />
-        <div className="h-24 w-20 bg-zinc-800/50 rounded-lg" />
-        <div className="h-24 w-20 bg-zinc-800/50 rounded-lg" />
+        <div className="h-24 w-20 bg-muted/50 rounded-lg" />
+        <div className="h-24 w-20 bg-muted/50 rounded-lg" />
+        <div className="h-24 w-20 bg-muted/50 rounded-lg" />
       </div>
       {/* Meal cards */}
       {[1, 2, 3, 4].map((i) => (
-        <div key={i} className="h-48 bg-zinc-800/50 rounded-xl" />
+        <div key={i} className="h-48 bg-muted/50 rounded-xl" />
       ))}
     </div>
   );
@@ -289,7 +289,7 @@ export default function MealPlanPage() {
 
   if (!plan) {
     return (
-      <div className="p-6 max-w-4xl mx-auto text-center text-zinc-400">
+      <div className="p-6 max-w-4xl mx-auto text-center text-muted-foreground">
         <UtensilsCrossed className="w-12 h-12 mx-auto mb-4 opacity-50" />
         <p>No meal plan available. Try refreshing.</p>
       </div>
@@ -302,35 +302,35 @@ export default function MealPlanPage() {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <UtensilsCrossed className="w-7 h-7 text-orange-400" />
-          <h1 className="text-2xl font-bold text-zinc-100">Meal Plan</h1>
+          <h1 className="text-2xl font-bold text-foreground">Meal Plan</h1>
         </div>
         <div className="flex items-center gap-2">
           <button
             onClick={handlePrevDay}
-            className="p-2 rounded-lg hover:bg-zinc-800 transition-colors"
+            className="p-2 rounded-lg hover:bg-muted transition-colors"
           >
-            <ChevronLeft className="w-5 h-5 text-zinc-400" />
+            <ChevronLeft className="w-5 h-5 text-muted-foreground" />
           </button>
           <button
             onClick={handleToday}
-            className="px-3 py-1.5 text-sm rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-300 transition-colors"
+            className="px-3 py-1.5 text-sm rounded-lg bg-muted hover:bg-accent text-foreground transition-colors"
           >
             Today
           </button>
           <button
             onClick={handleNextDay}
-            className="p-2 rounded-lg hover:bg-zinc-800 transition-colors"
+            className="p-2 rounded-lg hover:bg-muted transition-colors"
           >
-            <ChevronRight className="w-5 h-5 text-zinc-400" />
+            <ChevronRight className="w-5 h-5 text-muted-foreground" />
           </button>
         </div>
       </div>
 
       {/* Date Display */}
-      <p className="text-sm text-zinc-500">{displayDate(currentDate)}</p>
+      <p className="text-sm text-muted-foreground">{displayDate(currentDate)}</p>
 
       {/* ─── Day Summary Bar ─── */}
-      <div className="bg-zinc-900/70 border border-zinc-800 rounded-xl p-5 space-y-4">
+      <div className="bg-card border border-border rounded-xl p-5 space-y-4">
         <div className="flex items-center justify-between">
           <span
             className={cn(
@@ -342,7 +342,7 @@ export default function MealPlanPage() {
           >
             {plan.trainingDay ? "Training Day" : "Rest Day"}
           </span>
-          <div className="flex items-center gap-2 text-zinc-400">
+          <div className="flex items-center gap-2 text-muted-foreground">
             <Droplets className="w-4 h-4 text-cyan-400" />
             <span className="text-xs">Stay hydrated</span>
           </div>
@@ -381,14 +381,14 @@ export default function MealPlanPage() {
             },
           ].map((macro) => (
             <div key={macro.label} className="space-y-1">
-              <div className="flex justify-between text-xs text-zinc-400">
+              <div className="flex justify-between text-xs text-muted-foreground">
                 <span>{macro.label}</span>
                 <span>
                   {macro.consumed}/{macro.target}
                   {macro.unit}
                 </span>
               </div>
-              <div className="h-2 bg-zinc-800 rounded-full overflow-hidden">
+              <div className="h-2 bg-muted rounded-full overflow-hidden">
                 <div
                   className={cn("h-full rounded-full transition-all duration-500", macro.color)}
                   style={{
@@ -436,8 +436,8 @@ export default function MealPlanPage() {
             <div
               key={meal.name}
               className={cn(
-                "bg-zinc-900/70 border rounded-xl p-5 transition-all",
-                eaten ? "border-green-500/30 bg-green-500/5" : "border-zinc-800"
+                "bg-card border rounded-xl p-5 transition-all",
+                eaten ? "border-green-500/30 bg-green-500/5" : "border-border"
               )}
             >
               {/* Meal header */}
@@ -446,19 +446,19 @@ export default function MealPlanPage() {
                   <div
                     className={cn(
                       "p-2 rounded-lg",
-                      eaten ? "bg-green-500/15" : "bg-zinc-800"
+                      eaten ? "bg-green-500/15" : "bg-muted"
                     )}
                   >
                     <Icon
                       className={cn(
                         "w-4 h-4",
-                        eaten ? "text-green-400" : "text-zinc-400"
+                        eaten ? "text-green-400" : "text-muted-foreground"
                       )}
                     />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-zinc-200">{meal.name}</h3>
-                    <p className="text-xs text-zinc-500">{meal.time}</p>
+                    <h3 className="font-semibold text-foreground">{meal.name}</h3>
+                    <p className="text-xs text-muted-foreground">{meal.time}</p>
                   </div>
                 </div>
                 <button
@@ -467,7 +467,7 @@ export default function MealPlanPage() {
                     "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors",
                     eaten
                       ? "bg-green-500/15 text-green-400 border border-green-500/30"
-                      : "bg-zinc-800 text-zinc-400 hover:bg-zinc-700"
+                      : "bg-muted text-muted-foreground hover:bg-accent"
                   )}
                 >
                   <Check className="w-3.5 h-3.5" />
@@ -480,15 +480,15 @@ export default function MealPlanPage() {
                 {meal.foods.map((food, idx) => (
                   <div
                     key={idx}
-                    className="flex items-center justify-between text-sm py-1.5 border-b border-zinc-800/50 last:border-0"
+                    className="flex items-center justify-between text-sm py-1.5 border-b border-border last:border-0"
                   >
                     <div className="flex-1">
-                      <span className="text-zinc-300">{food.item}</span>
-                      <span className="text-zinc-600 ml-2">
+                      <span className="text-foreground">{food.item}</span>
+                      <span className="text-muted-foreground ml-2">
                         {food.portion}
                       </span>
                     </div>
-                    <div className="flex gap-3 text-xs text-zinc-500">
+                    <div className="flex gap-3 text-xs text-muted-foreground">
                       <span>{food.calories} cal</span>
                       <span className="text-red-400/70">P:{food.protein}g</span>
                       <span className="text-yellow-400/70">C:{food.carbs}g</span>
@@ -499,8 +499,8 @@ export default function MealPlanPage() {
               </div>
 
               {/* Meal totals */}
-              <div className="flex gap-4 pt-2 border-t border-zinc-800/50">
-                <span className="text-xs font-medium text-zinc-300">
+              <div className="flex gap-4 pt-2 border-t border-border">
+                <span className="text-xs font-medium text-foreground">
                   {meal.totalCalories} kcal
                 </span>
                 <span className="text-xs text-red-400">
@@ -519,8 +519,8 @@ export default function MealPlanPage() {
       </div>
 
       {/* ─── Nutrition Breakdown Donut ─── */}
-      <div className="bg-zinc-900/70 border border-zinc-800 rounded-xl p-5">
-        <h3 className="font-semibold text-zinc-200 mb-4">
+      <div className="bg-card border border-border rounded-xl p-5">
+        <h3 className="font-semibold text-foreground mb-4">
           Macro Breakdown
         </h3>
         <div className="flex items-center justify-center">
@@ -561,8 +561,8 @@ export default function MealPlanPage() {
                   className="w-3 h-3 rounded-full"
                   style={{ backgroundColor: entry.color }}
                 />
-                <span className="text-sm text-zinc-400">{entry.name}</span>
-                <span className="text-sm text-zinc-500 ml-2">
+                <span className="text-sm text-muted-foreground">{entry.name}</span>
+                <span className="text-sm text-muted-foreground ml-2">
                   {Math.round((entry.value / plan.targetCalories) * 100)}%
                 </span>
               </div>
@@ -572,13 +572,13 @@ export default function MealPlanPage() {
       </div>
 
       {/* ─── Notes & Hydration ─── */}
-      <div className="bg-zinc-900/70 border border-zinc-800 rounded-xl p-5 space-y-4">
-        <h3 className="font-semibold text-zinc-200 flex items-center gap-2">
+      <div className="bg-card border border-border rounded-xl p-5 space-y-4">
+        <h3 className="font-semibold text-foreground flex items-center gap-2">
           <Apple className="w-4 h-4 text-green-400" />
           Notes & Hydration
         </h3>
         {plan.notes && (
-          <p className="text-sm text-zinc-400 leading-relaxed">{plan.notes}</p>
+          <p className="text-sm text-muted-foreground leading-relaxed">{plan.notes}</p>
         )}
         {plan.hydration && (
           <div className="flex items-start gap-2 bg-cyan-500/5 border border-cyan-500/20 rounded-lg p-3">

@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import {
   Activity,
   Music,
+  UtensilsCrossed,
   Settings,
   ChevronLeft,
   ChevronRight,
@@ -15,6 +16,7 @@ import { RiteLogo } from "@/components/rite-logo";
 
 const navItems = [
   { href: "/dashboard", label: "Today", icon: Activity },
+  { href: "/meal-plan", label: "Nutrition", icon: UtensilsCrossed },
   { href: "/music", label: "Music", icon: Music },
   { href: "/settings", label: "Settings", icon: Settings },
 ];

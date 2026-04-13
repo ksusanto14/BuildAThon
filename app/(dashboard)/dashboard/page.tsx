@@ -1,7 +1,21 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Moon, Heart, Flame, Lightbulb, Utensils, BedDouble, Dumbbell } from "lucide-react";
+import {
+  Moon,
+  Heart,
+  Flame,
+  Lightbulb,
+  Utensils,
+  BedDouble,
+  Dumbbell,
+  TrendingUp,
+  TrendingDown,
+  Minus,
+  Flame as Streak,
+  UtensilsCrossed,
+  ArrowRight,
+} from "lucide-react";
 import Link from "next/link";
 
 type DashboardData = {
@@ -9,18 +23,27 @@ type DashboardData = {
   trend: { date: string; sleep: number; recovery: number; strain: number }[];
 };
 
+type MealPlanPreview = {
+  trainingDay: boolean;
+  targetCalories: number;
+  targetProtein: number;
+  meals: { name: string; time: string }[];
+};
+
 function ScoreRing({
   label,
   value,
+  delta,
   color,
   icon: Icon,
 }: {
   label: string;
   value: number;
+  delta: number | null;
   color: string;
   icon: React.ElementType;
 }) {
-  const radius = 40;
+  const radius = 38;
   const circumference = 2 * Math.PI * radius;
   const [animatedValue, setAnimatedValue] = useState(0);
 
@@ -34,14 +57,10 @@ function ScoreRing({
   return (
     <div className="flex flex-col items-center">
       <div className="relative">
-        <svg width="100" height="100" className="transform -rotate-90">
+        <svg width="96" height="96" className="transform -rotate-90">
+          <circle cx="48" cy="48" r={radius} fill="none" stroke="currentColor" strokeWidth="6" className="text-muted/20" />
           <circle
-            cx="50" cy="50" r={radius}
-            fill="none" stroke="currentColor" strokeWidth="6"
-            className="text-muted/20"
-          />
-          <circle
-            cx="50" cy="50" r={radius}
+            cx="48" cy="48" r={radius}
             fill="none" stroke={color} strokeWidth="6"
             strokeDasharray={circumference}
             strokeDashoffset={circumference - progress}
@@ -55,6 +74,26 @@ function ScoreRing({
       </div>
       <p className="text-2xl font-bold mt-1">{value}</p>
       <p className="text-xs text-muted-foreground">{label}</p>
+      {delta !== null && (
+        <div className="flex items-center gap-0.5 mt-0.5 text-[11px]">
+          {delta > 0 ? (
+            <>
+              <TrendingUp className="w-3 h-3 text-green-500" />
+              <span className="text-green-500 font-medium">+{delta}</span>
+            </>
+          ) : delta < 0 ? (
+            <>
+              <TrendingDown className="w-3 h-3 text-red-500" />
+              <span className="text-red-500 font-medium">{delta}</span>
+            </>
+          ) : (
+            <>
+              <Minus className="w-3 h-3 text-muted-foreground" />
+              <span className="text-muted-foreground">0</span>
+            </>
+          )}
+        </div>
+      )}
     </div>
   );
 }
@@ -71,7 +110,6 @@ function getRecommendations(sleep: number, recovery: number, strain: number) {
   const recoveryLevel = getScoreLevel(recovery);
   const strainLevel = getScoreLevel(strain);
 
-  // Sleep-driven recommendations
   if (sleepLevel === "low") {
     tips.push({
       icon: BedDouble,
@@ -88,7 +126,6 @@ function getRecommendations(sleep: number, recovery: number, strain: number) {
     });
   }
 
-  // Recovery-driven recommendations
   if (recoveryLevel === "low") {
     tips.push({
       icon: Utensils,
@@ -105,7 +142,6 @@ function getRecommendations(sleep: number, recovery: number, strain: number) {
     });
   }
 
-  // Strain-driven recommendations
   if (strainLevel === "high" && recoveryLevel === "low") {
     tips.push({
       icon: Dumbbell,
@@ -122,7 +158,6 @@ function getRecommendations(sleep: number, recovery: number, strain: number) {
     });
   }
 
-  // Connected insight
   if (sleepLevel === "low" && recoveryLevel === "low") {
     tips.push({
       icon: Lightbulb,
@@ -132,7 +167,6 @@ function getRecommendations(sleep: number, recovery: number, strain: number) {
     });
   }
 
-  // Good day
   if (sleepLevel === "high" && recoveryLevel === "high") {
     tips.push({
       icon: Lightbulb,
@@ -142,7 +176,6 @@ function getRecommendations(sleep: number, recovery: number, strain: number) {
     });
   }
 
-  // Always show at least one tip
   if (tips.length === 0) {
     tips.push({
       icon: Lightbulb,
@@ -155,8 +188,16 @@ function getRecommendations(sleep: number, recovery: number, strain: number) {
   return tips;
 }
 
+function getOverallStatus(score: number): { label: string; color: string } {
+  if (score >= 75) return { label: "Peak", color: "var(--recovery)" };
+  if (score >= 50) return { label: "Ready", color: "var(--primary)" };
+  if (score >= 30) return { label: "Caution", color: "var(--strain)" };
+  return { label: "Rest", color: "var(--destructive)" };
+}
+
 export default function DashboardPage() {
   const [data, setData] = useState<DashboardData | null>(null);
+  const [mealPlan, setMealPlan] = useState<MealPlanPreview | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -167,35 +208,139 @@ export default function DashboardPage() {
       .finally(() => setLoading(false));
   }, []);
 
+  useEffect(() => {
+    fetch("/api/meal-plan")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        if (d) setMealPlan(d);
+      })
+      .catch(() => {});
+  }, []);
+
   const today = data?.today ?? { sleepScore: 0, recoveryScore: 0, strainScore: 0 };
+  const trend = data?.trend ?? [];
+  const yesterday = trend.length >= 2 ? trend[trend.length - 2] : null;
+  const streak = trend.length;
+
+  const sleepDelta = yesterday ? today.sleepScore - yesterday.sleep : null;
+  const recoveryDelta = yesterday ? today.recoveryScore - yesterday.recovery : null;
+  const strainDelta = yesterday ? today.strainScore - yesterday.strain : null;
+
+  // Overall performance score: weighted average (recovery most important)
+  const overallScore = Math.round(
+    today.recoveryScore * 0.4 + today.sleepScore * 0.4 + today.strainScore * 0.2
+  );
+  const status = getOverallStatus(overallScore);
+
   const recommendations = getRecommendations(today.sleepScore, today.recoveryScore, today.strainScore);
 
   return (
     <div className="space-y-6 max-w-2xl mx-auto">
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold">Today</h1>
-        <p className="text-muted-foreground text-sm">
-          How your body is doing right now
-        </p>
-      </div>
-
-      {/* Score Rings — all 3 in one row */}
-      <div className="p-6 rounded-xl border border-border bg-card">
-        {loading ? (
-          <div className="h-40 flex items-center justify-center">
-            <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-          </div>
-        ) : (
-          <div className="flex justify-around">
-            <ScoreRing label="Sleep" value={today.sleepScore} color="var(--sleep)" icon={Moon} />
-            <ScoreRing label="Recovery" value={today.recoveryScore} color="var(--recovery)" icon={Heart} />
-            <ScoreRing label="Strain" value={today.strainScore} color="var(--strain)" icon={Flame} />
+      {/* Header with streak */}
+      <div className="flex items-start justify-between">
+        <div>
+          <h1 className="text-2xl font-bold">Today</h1>
+          <p className="text-muted-foreground text-sm">
+            How your body is doing right now
+          </p>
+        </div>
+        {streak > 0 && (
+          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-orange-500/10 border border-orange-500/20">
+            <Streak className="w-3.5 h-3.5 text-orange-500" />
+            <span className="text-xs font-semibold text-orange-500">{streak} day streak</span>
           </div>
         )}
       </div>
 
-      {/* AI Recommendations — connected insights */}
+      {/* Hero Overall Score */}
+      <div
+        className="p-6 rounded-2xl border"
+        style={{
+          borderColor: `color-mix(in srgb, ${status.color} 30%, transparent)`,
+          backgroundColor: `color-mix(in srgb, ${status.color} 6%, transparent)`,
+        }}
+      >
+        {loading ? (
+          <div className="h-20 flex items-center justify-center">
+            <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+          </div>
+        ) : (
+          <div className="flex items-center gap-6">
+            <div>
+              <p className="text-sm text-muted-foreground uppercase tracking-wide mb-1">Performance</p>
+              <div className="flex items-baseline gap-2">
+                <span className="text-6xl font-bold tabular-nums" style={{ color: status.color }}>
+                  {overallScore}
+                </span>
+                <span className="text-2xl text-muted-foreground">/100</span>
+              </div>
+              <p className="text-sm font-semibold mt-1" style={{ color: status.color }}>
+                {status.label}
+              </p>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* 3 Score Rings with deltas */}
+      <div className="p-6 rounded-xl border border-border bg-card">
+        {loading ? (
+          <div className="h-32 flex items-center justify-center">
+            <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+          </div>
+        ) : (
+          <div className="flex justify-around">
+            <ScoreRing label="Sleep" value={today.sleepScore} delta={sleepDelta} color="var(--sleep)" icon={Moon} />
+            <ScoreRing label="Recovery" value={today.recoveryScore} delta={recoveryDelta} color="var(--recovery)" icon={Heart} />
+            <ScoreRing label="Strain" value={today.strainScore} delta={strainDelta} color="var(--strain)" icon={Flame} />
+          </div>
+        )}
+      </div>
+
+      {/* Today's Meal Plan Preview */}
+      <Link
+        href="/meal-plan"
+        className="block p-5 rounded-xl border border-border bg-card hover:border-primary/30 transition-colors"
+      >
+        <div className="flex items-start gap-4">
+          <div className="w-10 h-10 rounded-full bg-orange-500/10 flex items-center justify-center shrink-0">
+            <UtensilsCrossed className="w-5 h-5 text-orange-500" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center justify-between mb-1">
+              <p className="font-semibold text-sm">Today&apos;s Meal Plan</p>
+              <ArrowRight className="w-4 h-4 text-muted-foreground" />
+            </div>
+            {mealPlan ? (
+              <>
+                <div className="flex items-center gap-2 mb-2">
+                  <span
+                    className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${
+                      mealPlan.trainingDay
+                        ? "bg-green-500/15 text-green-500"
+                        : "bg-blue-500/15 text-blue-500"
+                    }`}
+                  >
+                    {mealPlan.trainingDay ? "Training Day" : "Rest Day"}
+                  </span>
+                  <span className="text-xs text-muted-foreground">
+                    {mealPlan.targetCalories} kcal · {mealPlan.targetProtein}g protein
+                  </span>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  {mealPlan.meals.map((m) => m.name).join(" · ")}
+                </p>
+              </>
+            ) : (
+              <p className="text-xs text-muted-foreground">
+                Tap to generate your plan based on today&apos;s recovery and training load
+              </p>
+            )}
+          </div>
+        </div>
+      </Link>
+
+      {/* AI Recommendations */}
       <div className="space-y-3">
         <h2 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">
           What to do about it
@@ -216,7 +361,7 @@ export default function DashboardPage() {
         ))}
       </div>
 
-      {/* Quick link to music */}
+      {/* Training Music */}
       <Link
         href="/music"
         className="block p-4 rounded-xl border border-border bg-card hover:border-primary/30 transition-colors"
