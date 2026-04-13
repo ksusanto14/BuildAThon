@@ -56,20 +56,6 @@ export const healthDataRowSchema = z.object({
 
 export type HealthDataRow = z.infer<typeof healthDataRowSchema>;
 
-// Cross-field validation: sleep stages should roughly sum to total sleep
-export function validateSleepStages(row: HealthDataRow): string | null {
-  if (row.sleepHours == null) return null;
-  const deep = row.deepSleepHrs ?? 0;
-  const rem = row.remSleepHrs ?? 0;
-  const light = row.lightSleepHrs ?? 0;
-  const awake = row.awakeHrs ?? 0;
-  const stageSum = deep + rem + light + awake;
-  if (stageSum > 0 && Math.abs(stageSum - row.sleepHours) > 0.5) {
-    return `Sleep stages sum (${stageSum.toFixed(1)}h) differs from total sleep (${row.sleepHours}h) by more than 0.5h`;
-  }
-  return null;
-}
-
 // Fuzzy match CSV header to RITE field
 const HEADER_ALIASES: Record<string, RiteFieldKey> = {
   date: "date",
@@ -192,18 +178,6 @@ export function validateRows(
           message: issue.message,
         });
       }
-      continue;
-    }
-
-    // Cross-field validation
-    const stageError = validateSleepStages(result.data);
-    if (stageError) {
-      errors.push({
-        row: i + 1,
-        field: "sleepHours",
-        value: String(result.data.sleepHours),
-        message: stageError,
-      });
       continue;
     }
 
