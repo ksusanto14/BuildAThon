@@ -116,13 +116,19 @@ export default function ManualEntryPage() {
         }),
       });
 
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.error || "Save failed");
+      const text = await res.text();
+      let payload: { error?: string; imported?: number; overwritten?: number } = {};
+      try {
+        payload = text ? JSON.parse(text) : {};
+      } catch {
+        throw new Error(`Server error (${res.status})`);
       }
 
-      const result = await res.json();
-      if (result.imported > 0 || result.overwritten > 0) {
+      if (!res.ok) {
+        throw new Error(payload.error || `Save failed (${res.status})`);
+      }
+
+      if ((payload.imported ?? 0) > 0 || (payload.overwritten ?? 0) > 0) {
         toast.success("Data saved successfully!");
         window.location.href = "/dashboard";
       } else {
